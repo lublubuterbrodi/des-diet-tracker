@@ -1,67 +1,155 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+
 import type { DietItem, FoodLog } from "../types";
 import { getRomaniaDate } from "../utils";
+
+type TodayResponse = {
+  dietItems: Array<{
+    id: string;
+    name: string;
+    daily_limit: number | string;
+    unit: string;
+  }>;
+
+  foodLogs: Array<{
+    id: string;
+    diet_item_id: string;
+    amount: number | string;
+    created_at: string;
+    log_date: string;
+  }>;
+
+  dailyWeight: {
+    id: string;
+    weight: number | string;
+    log_date: string;
+    created_at: string;
+  } | null;
+};
+
+async function getErrorMessage(
+  response: Response,
+  fallback: string,
+) {
+  const result = await response.json().catch(() => null);
+
+  return result?.error ?? fallback;
+}
 
 export function useTodayDiet() {
   const [items, setItems] = useState<DietItem[]>([]);
   const [logs, setLogs] = useState<FoodLog[]>([]);
   const [weight, setWeight] = useState("");
-  const [weightId, setWeightId] = useState<string | null>(null);
-  const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
+  const [isWeightModalOpen, setIsWeightModalOpen] =
+    useState(false);
   const [loading, setLoading] = useState(true);
 
-  const [selectedItem, setSelectedItem] = useState<DietItem | null>(null);
+  const [selectedItem, setSelectedItem] =
+    useState<DietItem | null>(null);
   const [amount, setAmount] = useState("");
-  const [editingLogId, setEditingLogId] = useState<string | null>(null);
+  const [editingLogId, setEditingLogId] =
+    useState<string | null>(null);
+
+  const applyTodayData = useCallback((data: TodayResponse) => {
+    setItems(
+      data.dietItems.map((item) => ({
+        ...item,
+        daily_limit: Number(item.daily_limit),
+      })),
+    );
+
+    setLogs(
+      data.foodLogs.map((log) => ({
+        ...log,
+        amount: Number(log.amount),
+      })),
+    );
+
+    setWeight(
+      data.dailyWeight
+        ? String(data.dailyWeight.weight).replace(".", ",")
+        : "",
+    );
+  }, []);
 
   const fetchData = useCallback(async () => {
     const today = getRomaniaDate();
 
-    const { data: dietItems, error: dietError } = await supabase
-      .from("diet_items")
-      .select("*")
-      .order("created_at", { ascending: true });
+    const response = await fetch(
+      `/api?type=today&date=${encodeURIComponent(today)}`,
+      {
+        cache: "no-store",
+      },
+    );
 
-    const { data: foodLogs, error: logsError } = await supabase
-      .from("food_logs")
-      .select("*")
-      .eq("log_date", today)
-      .order("created_at", { ascending: true });
-
-    const { data: dailyWeight, error: weightError } = await supabase
-      .from("daily_weights")
-      .select("*")
-      .eq("log_date", today)
-      .maybeSingle();
-
-    if (dietError || logsError || weightError) {
-      console.error("Diet error:", dietError);
-      console.error("Logs error:", logsError);
-      console.error("Weight error:", weightError);
-      setLoading(false);
-      return;
+    if (!response.ok) {
+      throw new Error(
+        await getErrorMessage(
+          response,
+          "Could not load today's data",
+        ),
+      );
     }
 
-    setItems(dietItems || []);
-    setLogs(foodLogs || []);
-    setWeight(dailyWeight ? String(dailyWeight.weight).replace(".", ",") : "");
-    setWeightId(dailyWeight?.id || null);
+    const data = (await response.json()) as TodayResponse;
+
+    applyTodayData(data);
     setLoading(false);
-  }, []);
+  }, [applyTodayData]);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const loadData = async () => {
-      await fetchData();
+      try {
+        const today = getRomaniaDate();
+
+        const response = await fetch(
+          `/api?type=today&date=${encodeURIComponent(today)}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            await getErrorMessage(
+              response,
+              "Could not load today's data",
+            ),
+          );
+        }
+
+        const data = (await response.json()) as TodayResponse;
+
+        if (controller.signal.aborted) return;
+
+        applyTodayData(data);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+
+        console.error("Data loading error:", error);
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
     };
 
     void loadData();
-  }, [fetchData]);
+
+    return () => {
+      controller.abort();
+    };
+  }, [applyTodayData]);
 
   const getItemLogs = (itemId: string) => {
-    return logs.filter((log) => log.diet_item_id === itemId);
+    return logs.filter(
+      (log) => log.diet_item_id === itemId,
+    );
   };
 
   const getEatenAmount = (itemId: string) => {
@@ -84,107 +172,178 @@ export function useTodayDiet() {
   };
 
   const saveWeight = async () => {
-    const numericWeight = Number(weight.replace(",", "."));
+    try {
+      const numericWeight = Number(
+        weight.replace(",", "."),
+      );
 
-    if (!numericWeight || numericWeight <= 0) {
-      alert("Enter a valid weight");
-      return;
-    }
+      if (
+        !Number.isFinite(numericWeight) ||
+        numericWeight <= 0
+      ) {
+        alert("Enter a valid weight");
+        return;
+      }
 
-    const today = getRomaniaDate();
-
-    const { error } = weightId
-      ? await supabase
-          .from("daily_weights")
-          .update({ weight: numericWeight })
-          .eq("id", weightId)
-      : await supabase.from("daily_weights").insert({
+      const response = await fetch("/api", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "save-weight",
           weight: numericWeight,
-          log_date: today,
-        });
+          logDate: getRomaniaDate(),
+        }),
+      });
 
-    if (error) {
+      if (!response.ok) {
+        throw new Error(
+          await getErrorMessage(
+            response,
+            "Could not save weight",
+          ),
+        );
+      }
+
+      setIsWeightModalOpen(false);
+      await fetchData();
+    } catch (error) {
       console.error("Weight save error:", error);
       alert("Could not save weight");
-      return;
     }
-
-    setIsWeightModalOpen(false);
-    void fetchData();
   };
 
   const saveFoodLog = async () => {
     if (!selectedItem) return;
 
-    const numericAmount = Number(amount);
+    try {
+      const numericAmount = Number(
+        amount.replace(",", "."),
+      );
 
-    if (!numericAmount || numericAmount <= 0) {
-      alert("Enter a valid amount");
-      return;
-    }
-
-    if (editingLogId) {
-      const { error } = await supabase
-        .from("food_logs")
-        .update({ amount: numericAmount })
-        .eq("id", editingLogId);
-
-      if (error) {
-        console.error("Update error:", error);
+      if (
+        !Number.isFinite(numericAmount) ||
+        numericAmount <= 0
+      ) {
+        alert("Enter a valid amount");
         return;
       }
-    } else {
-      const { error } = await supabase.from("food_logs").insert({
-        diet_item_id: selectedItem.id,
-        amount: numericAmount,
-        log_date: getRomaniaDate(),
-      });
 
-      if (error) {
-        console.error("Insert error:", error);
-        return;
+      const response = editingLogId
+        ? await fetch("/api", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: editingLogId,
+              amount: numericAmount,
+            }),
+          })
+        : await fetch("/api", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "save-food-log",
+              dietItemId: selectedItem.id,
+              amount: numericAmount,
+              logDate: getRomaniaDate(),
+            }),
+          });
+
+      if (!response.ok) {
+        throw new Error(
+          await getErrorMessage(
+            response,
+            editingLogId
+              ? "Could not update food log"
+              : "Could not create food log",
+          ),
+        );
       }
-    }
 
-    closeFoodModal();
-    void fetchData();
+      closeFoodModal();
+      await fetchData();
+    } catch (error) {
+      console.error("Food log save error:", error);
+      alert("Could not save food log");
+    }
   };
 
   const deleteLog = async (logId: string) => {
-    const { error } = await supabase.from("food_logs").delete().eq("id", logId);
+    try {
+      const response = await fetch("/api", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "delete-food-log",
+          id: logId,
+        }),
+      });
 
-    if (error) {
+      if (!response.ok) {
+        throw new Error(
+          await getErrorMessage(
+            response,
+            "Could not delete food log",
+          ),
+        );
+      }
+
+      await fetchData();
+    } catch (error) {
       console.error("Delete error:", error);
-      return;
+      alert("Could not delete food log");
     }
-
-    void fetchData();
   };
 
-  const editLog = (item: DietItem, log: FoodLog) => {
+  const editLog = (
+    item: DietItem,
+    log: FoodLog,
+  ) => {
     setSelectedItem(item);
     setAmount(String(log.amount));
     setEditingLogId(log.id);
   };
 
   const resetToday = async () => {
-    const confirmed = confirm("Delete all today's logs?");
+    const confirmed = confirm(
+      "Delete all today's logs?",
+    );
 
     if (!confirmed) return;
 
-    const today = getRomaniaDate();
+    try {
+      const response = await fetch("/api", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "reset-day",
+          logDate: getRomaniaDate(),
+        }),
+      });
 
-    const { error } = await supabase
-      .from("food_logs")
-      .delete()
-      .eq("log_date", today);
+      if (!response.ok) {
+        throw new Error(
+          await getErrorMessage(
+            response,
+            "Could not reset today's logs",
+          ),
+        );
+      }
 
-    if (error) {
+      await fetchData();
+    } catch (error) {
       console.error("Reset error:", error);
-      return;
+      alert("Could not reset today's logs");
     }
-
-    void fetchData();
   };
 
   const fruitItems = items.filter((item) =>
@@ -195,7 +354,10 @@ export function useTodayDiet() {
     ["Meat", "Fish"].includes(item.name),
   );
 
-  const groupedItemIds = [...fruitItems, ...meatItems].map((item) => item.id);
+  const groupedItemIds = [
+    ...fruitItems,
+    ...meatItems,
+  ].map((item) => item.id);
 
   const regularItems = items.filter(
     (item) => !groupedItemIds.includes(item.id),
