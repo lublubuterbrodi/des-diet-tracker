@@ -7,6 +7,7 @@ interface ProductSearchResult {
   description: string;
   brandOwner: string | null;
   foodCategory: string | null;
+  imported: boolean;
 }
 
 export function useProductSearch(query: string) {
