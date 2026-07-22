@@ -1,17 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
-import type { DietItem } from "./types";
+import type { DietItem } from "./types/types";
 import { getFormattedRomaniaDate } from "./utils";
 
 import { DietItemCard } from "./components/DietItemCard";
 import { FoodLogModal } from "./components/FoodLogModal";
+import ProductSearchModal from "./components/ProductSearchModal";
 import { WeightCard } from "./components/WeightCard";
 import { WeightModal } from "./components/WeightModal";
 import { useTodayDiet } from "./hooks/useTodayDiet";
 
 export default function Home() {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
   const {
     loading,
 
@@ -38,21 +42,21 @@ export default function Home() {
     fruitItems,
     meatItems,
     regularItems,
+
+    fetchData,
   } = useTodayDiet();
 
-  const renderDietItem = (item: DietItem) => {
-    return (
-      <DietItemCard
-        key={item.id}
-        item={item}
-        itemLogs={getItemLogs(item.id)}
-        eaten={getEatenAmount(item.id)}
-        onAdd={openFoodModal}
-        onEdit={editLog}
-        onDelete={deleteLog}
-      />
-    );
-  };
+  const renderDietItem = (item: DietItem) => (
+    <DietItemCard
+      key={item.id}
+      item={item}
+      itemLogs={getItemLogs(item.id)}
+      eaten={getEatenAmount(item.id)}
+      onAdd={openFoodModal}
+      onEdit={editLog}
+      onDelete={deleteLog}
+    />
+  );
 
   if (loading) {
     return <main className="p-6 text-zinc-900">Loading...</main>;
@@ -64,6 +68,13 @@ export default function Home() {
         <h1 className="text-2xl font-bold">{getFormattedRomaniaDate()}</h1>
 
         <div className="flex gap-2">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="rounded-xl bg-green-600 px-3 py-2 text-sm font-medium text-white"
+          >
+            + Product
+          </button>
+
           <Link
             href="/history"
             className="rounded-xl bg-zinc-900 px-3 py-2 text-sm font-medium text-white"
@@ -89,9 +100,7 @@ export default function Home() {
               Fruits / Watermelon
             </h2>
 
-            <div className="space-y-5">
-              {fruitItems.map((item) => renderDietItem(item))}
-            </div>
+            <div className="space-y-5">{fruitItems.map(renderDietItem)}</div>
           </div>
         )}
 
@@ -101,9 +110,7 @@ export default function Home() {
               Meat / Fish
             </h2>
 
-            <div className="space-y-5">
-              {meatItems.map((item) => renderDietItem(item))}
-            </div>
+            <div className="space-y-5">{meatItems.map(renderDietItem)}</div>
           </div>
         )}
 
@@ -133,6 +140,15 @@ export default function Home() {
           onSave={saveFoodLog}
         />
       )}
+
+      <ProductSearchModal
+        open={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onImported={async () => {
+          await fetchData();
+          setIsSearchOpen(false);
+        }}
+      />
     </main>
   );
 }

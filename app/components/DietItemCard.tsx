@@ -1,5 +1,5 @@
 import { Pencil, X } from "lucide-react";
-import type { DietItem, FoodLog } from "../types";
+import type { DietItem, FoodLog } from "../types/types";
 
 type DietItemCardProps = {
   item: DietItem;

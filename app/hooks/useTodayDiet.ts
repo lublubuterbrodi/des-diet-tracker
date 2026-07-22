@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import type { DietItem, FoodLog } from "../types";
+import type { DietItem, FoodLog } from "../types/types";
 import { getRomaniaDate } from "../utils";
 
 type TodayResponse = {
@@ -388,6 +388,8 @@ export function useTodayDiet() {
 
     fruitItems,
     meatItems,
-    regularItems,
+     regularItems,
+    
+     fetchData,
   };
 }

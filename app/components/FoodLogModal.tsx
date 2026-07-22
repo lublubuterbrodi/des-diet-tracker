@@ -1,4 +1,4 @@
-import type { DietItem } from "../types";
+import type { DietItem } from "../types/types";
 
 type FoodLogModalProps = {
   selectedItem: DietItem;
