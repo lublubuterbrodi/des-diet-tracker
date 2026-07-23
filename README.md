@@ -259,23 +259,26 @@ GET /api/usda
 
 ---
 
-# 📸 Screenshots
+## 📸 Screenshots
 
-### Home
+<table>
+<tr>
+<td align="center">
+<b>Home</b><br><br>
+<img src="./public/screenshots/home.png" width="260">
+</td>
 
-![Home](./public/screenshots/home.png)
+<td align="center">
+<b>History</b><br><br>
+<img src="./public/screenshots/history.png" width="260">
+</td>
 
----
-
-### History
-
-![History](./public/screenshots/history.png)
-
----
-
-### Login
-
-![Login](./public/screenshots/login.png)
+<td align="center">
+<b>Login</b><br><br>
+<img src="./public/screenshots/login.png" width="260">
+</td>
+</tr>
+</table>
 
 ---
 
