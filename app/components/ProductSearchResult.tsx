@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { toast } from "sonner";
-
 interface ProductSearchResultProps {
   product: {
     fdcId: number;
@@ -12,43 +9,13 @@ interface ProductSearchResultProps {
     imported: boolean;
   };
 
-  onImported: () => Promise<void>;
+  onSelect: () => void;
 }
 
 export default function ProductSearchResult({
   product,
-  onImported,
+  onSelect,
 }: ProductSearchResultProps) {
-  const [loading, setLoading] = useState(false);
-
-  async function handleImport() {
-    try {
-      setLoading(true);
-
-      const response = await fetch("/api/usda/import", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fdcId: product.fdcId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to import product");
-      }
-
-      await onImported();
-      toast.success("Product imported successfully");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to import product");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-green-500 hover:shadow-md">
       <div className="flex items-start justify-between gap-4">
@@ -69,17 +36,16 @@ export default function ProductSearchResult({
         </div>
 
         <button
-          onClick={handleImport}
-          disabled={loading || product.imported}
-          className={`rounded-xl px-4 py-2 text-sm font-medium text-white transition
-            ${product.imported ? "bg-emerald-600" : "bg-green-600 hover:bg-green-700"}
-            disabled:cursor-not-allowed`}
+          type="button"
+          onClick={onSelect}
+          disabled={product.imported}
+          className={`rounded-xl px-4 py-2 text-sm font-medium text-white transition ${
+            product.imported
+              ? "bg-emerald-600"
+              : "bg-green-600 hover:bg-green-700"
+          } disabled:cursor-not-allowed`}
         >
-          {loading
-            ? "Importing..."
-            : product.imported
-              ? "✓ Imported"
-              : "Import"}
+          {product.imported ? "✓ Imported" : "Import"}
         </button>
       </div>
     </div>

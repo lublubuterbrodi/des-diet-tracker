@@ -2,7 +2,7 @@ import { sql } from "@/lib/db";
 
 export async function getByUserAndProduct(
   userId: string,
-  productId: string
+  productId: string,
 ) {
   const [item] = await sql`
     SELECT *
@@ -18,17 +18,20 @@ export async function getByUserAndProduct(
 export async function createUserDietItem(
   userId: string,
   productId: string,
-  unit: string
+  dailyLimit: number,
+  unit: string,
 ) {
   const [item] = await sql`
     INSERT INTO user_diet_items (
       user_id,
       product_id,
+      daily_limit,
       unit
     )
     VALUES (
       ${userId},
       ${productId},
+      ${dailyLimit},
       ${unit}
     )
     RETURNING *;
@@ -37,7 +40,9 @@ export async function createUserDietItem(
   return item;
 }
 
-export async function getUserDietItems(userId: string) {
+export async function getUserDietItems(
+  userId: string,
+) {
   return await sql`
     SELECT
       udi.id,
@@ -53,7 +58,9 @@ export async function getUserDietItems(userId: string) {
   `;
 }
 
-export async function getAllUserDietItems(userId: string) {
+export async function getAllUserDietItems(
+  userId: string,
+) {
   return await sql`
     SELECT
       udi.id,
@@ -71,7 +78,7 @@ export async function getAllUserDietItems(userId: string) {
 
 export async function getUserDietItemById(
   id: string,
-  userId: string
+  userId: string,
 ) {
   const [item] = await sql`
     SELECT *
@@ -82,4 +89,34 @@ export async function getUserDietItemById(
   `;
 
   return item ?? null;
+}
+
+export async function updateUserDietItem(
+  id: string,
+  userId: string,
+  dailyLimit: number,
+  unit: string,
+) {
+  const [item] = await sql`
+    UPDATE user_diet_items
+    SET
+      daily_limit = ${dailyLimit},
+      unit = ${unit}
+    WHERE id = ${id}
+      AND user_id = ${userId}
+    RETURNING *;
+  `;
+
+  return item ?? null;
+}
+
+export async function deleteUserDietItem(
+  id: string,
+  userId: string,
+) {
+  await sql`
+    DELETE FROM user_diet_items
+    WHERE id = ${id}
+      AND user_id = ${userId};
+  `;
 }

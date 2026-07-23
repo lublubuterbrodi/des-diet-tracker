@@ -9,6 +9,7 @@ import {
 import {
   createUserDietItem,
   getByUserAndProduct,
+  updateUserDietItem,
 } from "@/repositories/user-diet-item.repository";
 
 import { mapUsdaCategory } from "@/lib/usda-category";
@@ -16,40 +17,53 @@ import { mapUsdaCategory } from "@/lib/usda-category";
 export async function importUsdaFood(
   userId: string,
   fdcId: number,
+  dailyLimit: number,
+  unit: string,
 ) {
   const food = await getFood(fdcId);
 
   let product = await getProductByUsdaId(fdcId);
 
   if (!product) {
-    const categoryName = mapUsdaCategory(food.foodCategory);
+    const categoryName = mapUsdaCategory(
+      food.foodCategory,
+    );
 
-    const category = await getCategoryByName(categoryName);
+    const category =
+      await getCategoryByName(categoryName);
 
     if (!category) {
-      throw new Error(`Category "${categoryName}" not found`);
+      throw new Error(
+        `Category "${categoryName}" not found`,
+      );
     }
 
     product = await createProduct(
       food.description,
       category.id,
-      "g",
+      unit,
       food.fdcId,
     );
   }
 
-  let item = await getByUserAndProduct(
+  const existingItem = await getByUserAndProduct(
     userId,
     product.id,
   );
 
-  if (!item) {
-    item = await createUserDietItem(
+  if (existingItem) {
+    return await updateUserDietItem(
+      existingItem.id,
       userId,
-      product.id,
-      product.default_unit,
+      dailyLimit,
+      unit,
     );
   }
 
-  return item;
+  return await createUserDietItem(
+    userId,
+    product.id,
+    dailyLimit,
+    unit,
+  );
 }

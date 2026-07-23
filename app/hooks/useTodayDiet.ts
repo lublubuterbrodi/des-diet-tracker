@@ -84,6 +84,11 @@ export function useTodayDiet() {
       },
     );
 
+    if (response.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+
     if (!response.ok) {
       throw new Error(
         await getErrorMessage(
@@ -96,55 +101,21 @@ export function useTodayDiet() {
     const data = (await response.json()) as TodayResponse;
 
     applyTodayData(data);
-    setLoading(false);
   }, [applyTodayData]);
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    const loadData = async () => {
+    const load = async () => {
       try {
-        const today = getRomaniaDate();
-
-        const response = await fetch(
-          `/api?type=today&date=${encodeURIComponent(today)}`,
-          {
-            cache: "no-store",
-            signal: controller.signal,
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            await getErrorMessage(
-              response,
-              "Could not load today's data",
-            ),
-          );
-        }
-
-        const data = (await response.json()) as TodayResponse;
-
-        if (controller.signal.aborted) return;
-
-        applyTodayData(data);
+        await fetchData();
       } catch (error) {
-        if (controller.signal.aborted) return;
-
         console.error("Data loading error:", error);
       } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
-    void loadData();
-
-    return () => {
-      controller.abort();
-    };
-  }, [applyTodayData]);
+    void load();
+  }, [fetchData]);
 
   const getItemLogs = (itemId: string) => {
     return logs.filter(
@@ -196,6 +167,11 @@ export function useTodayDiet() {
           logDate: getRomaniaDate(),
         }),
       });
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(
@@ -254,6 +230,11 @@ export function useTodayDiet() {
             }),
           });
 
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
       if (!response.ok) {
         throw new Error(
           await getErrorMessage(
@@ -285,6 +266,11 @@ export function useTodayDiet() {
           id: logId,
         }),
       });
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(
@@ -329,6 +315,11 @@ export function useTodayDiet() {
           logDate: getRomaniaDate(),
         }),
       });
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(
@@ -388,8 +379,8 @@ export function useTodayDiet() {
 
     fruitItems,
     meatItems,
-     regularItems,
-    
-     fetchData,
+    regularItems,
+
+    fetchData,
   };
 }

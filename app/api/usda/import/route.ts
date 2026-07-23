@@ -1,8 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
 
 import { auth } from "@/auth";
-
 import { importUsdaFood } from "@/services/usda-import.service";
+
+const allowedUnits = ["g", "pcs", "ml"];
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,23 +19,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { fdcId } = await request.json();
+    const body = await request.json();
 
-    if (!fdcId) {
+    const fdcId = Number(body.fdcId);
+    const dailyLimit = Number(body.dailyLimit);
+    const unit = String(body.unit ?? "").trim();
+
+    if (
+      !Number.isInteger(fdcId) ||
+      fdcId <= 0
+    ) {
       return NextResponse.json(
-        { error: "fdcId is required" },
+        { error: "Valid fdcId is required" },
+        { status: 400 },
+      );
+    }
+
+    if (
+      !Number.isFinite(dailyLimit) ||
+      dailyLimit <= 0
+    ) {
+      return NextResponse.json(
+        { error: "Valid daily limit is required" },
+        { status: 400 },
+      );
+    }
+
+    if (!allowedUnits.includes(unit)) {
+      return NextResponse.json(
+        { error: "Invalid unit" },
         { status: 400 },
       );
     }
 
     const item = await importUsdaFood(
       session.user.id,
-      Number(fdcId),
+      fdcId,
+      dailyLimit,
+      unit,
     );
 
-    return NextResponse.json(item);
+    return NextResponse.json(item, {
+      status: 201,
+    });
   } catch (error) {
-    console.error(error);
+    console.error(
+      "USDA product import failed:",
+      error,
+    );
 
     return NextResponse.json(
       {
