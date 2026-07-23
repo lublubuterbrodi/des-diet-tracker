@@ -263,25 +263,19 @@ GET /api/usda
 
 ### Home
 
-_Add screenshot_
-
----
-
-### Daily Diet
-
-_Add screenshot_
+![Home](./screenshots/home.png)
 
 ---
 
 ### History
 
-_Add screenshot_
+![History](./screenshots/history.png)
 
 ---
 
 ### Login
 
-_Add screenshot_
+![Login](./screenshots/login.png)
 
 ---
 
