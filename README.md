@@ -263,19 +263,19 @@ GET /api/usda
 
 ### Home
 
-![Home](./screenshots/home.png)
+![Home](./public/screenshots/home.png)
 
 ---
 
 ### History
 
-![History](./screenshots/history.png)
+![History](./public/screenshots/history.png)
 
 ---
 
 ### Login
 
-![Login](./screenshots/login.png)
+![Login](./public/screenshots/login.png)
 
 ---
 
