@@ -179,6 +179,15 @@ Passwords are securely hashed using **bcrypt** before being stored in the databa
 
 ---
 
+## 🧪 Demo Account
+
+You can test the application using the demo account:
+
+**Email:** `test@example.com`  
+**Password:** `123456789`
+
+---
+
 # 🌎 USDA Integration
 
 The application integrates with the USDA FoodData Central API.
