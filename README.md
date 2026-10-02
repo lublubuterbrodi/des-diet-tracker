@@ -1,148 +1,92 @@
-![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript)
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql)
-![Auth.js](https://img.shields.io/badge/Auth.js-v5-black)
-![Neon](https://img.shields.io/badge/Database-Neon-00E599)
-
 # 🥗 Diet Tracker
 
-A full-stack nutrition tracking application built with **Next.js**, **TypeScript**, and **PostgreSQL**.
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19-20232A?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql)
+![Neon](https://img.shields.io/badge/Neon-PostgreSQL-00E599?logo=neon)
+![Auth.js](https://img.shields.io/badge/Auth.js-v5-000000?logo=auth0)
+![bcrypt](https://img.shields.io/badge/bcrypt-Password_Hashing-003A70)
 
-Diet Tracker helps users create a personalized daily diet, track food intake, and monitor body weight over time. Each user has their own private account and completely isolated data.
+A full-stack nutrition tracking application built with **Next.js, TypeScript, PostgreSQL, Auth.js, and Neon**.
 
-> This project was built as a real-world application to simplify daily nutrition tracking and practice building scalable full-stack architecture.
+Users can create a personalized daily diet, track food intake and body weight, search nutrition data through the USDA FoodData Central API, and manage their own products.
 
----
+🔗 **Live Demo:** [Open Diet Tracker](YOUR_LIVE_URL)
+
+### Demo Account
+
+```text
+Email: test@example.com
+Password: 123456789
+```
+
+> Use the demo account to explore the application without creating a new account.
 
 ## ✨ Features
 
-### 👤 User Accounts
+- 🔐 Authentication and user registration with isolated user data
+- 🥦 Create and manage a personalized daily diet
+- 🔎 Search and import products from USDA FoodData Central
+- ➕ Add custom food products
+- 🍽 Log, edit, and delete consumed food
+- 📅 Browse previous food history
+- ⚖️ Save and update daily body weight
+- 📈 Browse weight history
+- 🎯 Set individual daily food limits
 
-- Secure authentication
-- User registration
-- Individual user profiles
-- Complete data isolation between users
+## 🚀 Tech Stack
 
-### 🥦 Diet Management
-
-- Create a personalized daily diet
-- Search products from the USDA FoodData Central database
-- Add custom products
-- Set individual daily limits
-- Remove products from the diet
-
-### 🍽 Food Tracking
-
-- Log consumed food
-- Edit food entries
-- Delete food entries
-- Reset an entire day's log
-- View previous food history
-
-### ⚖ Weight Tracking
-
-- Save daily body weight
-- Update weight records
-- Browse weight history
-
-### 🔎 Product Search
-
-- USDA FoodData Central integration
-- Product categories
-- Fast search
-- Custom products support
-
----
-
-# 🚀 Tech Stack
-
-## Frontend
-
+**Frontend**
 - Next.js (App Router)
 - React
 - TypeScript
 
-## Backend
-
+**Backend**
 - Next.js Route Handlers
-- Repository Pattern
 - Service Layer
+- Repository Pattern
 
-## Database
-
+**Database**
 - PostgreSQL
-- Neon Database
+- Neon
 
-## Authentication
-
+**Authentication**
 - Auth.js (NextAuth v5)
 - Credentials Provider
 - bcrypt
 
-## APIs
-
+**External API**
 - USDA FoodData Central API
 
----
+## 🏗 Architecture
 
-# 🏗 Architecture
+The application uses a layered architecture to separate API handling, business logic, and database access.
 
-The project follows a layered architecture to keep business logic separated from database access.
-
-```
+```text
 Client
-   │
-   ▼
+  ↓
 Route Handlers
-   │
-   ▼
+  ↓
 Services
-   │
-   ▼
+  ↓
 Repositories
-   │
-   ▼
+  ↓
 PostgreSQL
 ```
 
-### Repository Layer
+This keeps database queries isolated in repositories while application logic remains in the service layer.
 
-Responsible only for database queries.
+## 📂 Project Structure
 
-Examples:
-
-- User Repository
-- Food Log Repository
-- Product Repository
-- USDA Repository
-- Daily Weight Repository
-
----
-
-### Service Layer
-
-Contains business logic.
-
-Examples:
-
-- USDA Import Service
-- Product Service
-
----
-
-# 📂 Project Structure
-
-```
+```text
 app/
-│
 ├── api/
 ├── components/
 ├── history/
 ├── hooks/
 ├── login/
 ├── register/
-│
 ├── HomeClient.tsx
 ├── layout.tsx
 └── page.tsx
@@ -154,174 +98,68 @@ types/
 public/
 ```
 
----
+## 🌎 USDA Integration
 
-# 🗄 Database
+The application integrates with the **USDA FoodData Central API**, allowing users to search food products and import nutrition data directly into their diet.
 
-Main tables:
+Custom products can also be created manually.
 
-| Table              | Description             |
-| ------------------ | ----------------------- |
-| users              | Registered users        |
-| products           | Available food products |
-| product_categories | Product categories      |
-| user_diet_items    | User's daily diet       |
-| food_logs          | Daily consumed food     |
-| daily_weights      | User weight history     |
+## 🔐 Authentication & Data Isolation
 
----
+Authentication is implemented with **Auth.js (NextAuth v5)** using the Credentials Provider.
 
-# 🔐 Authentication
+Passwords are hashed with **bcrypt**, and all diet, food log, and weight data is associated with the authenticated user.
 
-Authentication is implemented using **Auth.js (NextAuth v5)** with the Credentials Provider.
-
-Passwords are securely hashed using **bcrypt** before being stored in the database.
-
----
-
-## 🧪 Demo Account
-
-You can test the application using the demo account:
-
-**Email:** `test@example.com`  
-**Password:** `123456789`
-
----
-
-# 🌎 USDA Integration
-
-The application integrates with the USDA FoodData Central API.
-
-Users can:
-
-- search products
-- import nutrition data
-- build their own personalized diet
-
----
-
-# ⚙ Environment Variables
-
-Create a `.env.local` file:
-
-```env
-DATABASE_URL=
-
-AUTH_SECRET=
-AUTH_URL=http://localhost:3000
-
-USDA_API_KEY=
-```
-
----
-
-# ▶ Running Locally
-
-Clone the repository
+## ⚙️ Running Locally
 
 ```bash
-git clone https://github.com/your-username/diet-tracker.git
-```
+git clone YOUR_REPOSITORY_URL
+cd diet-tracker
 
-Install dependencies
-
-```bash
 npm install
 ```
 
-Run development server
+Create `.env.local`:
+
+```env
+DATABASE_URL=
+AUTH_SECRET=
+AUTH_URL=http://localhost:3000
+USDA_API_KEY=
+```
+
+Then run:
 
 ```bash
 npm run dev
 ```
 
-Open
-
-```
-http://localhost:3000
-```
-
----
-
-# 📌 API Overview
-
-### Authentication
-
-```
-POST /api/auth/register
-POST /api/auth/[...nextauth]
-```
-
-### User Diet
-
-```
-GET    /api/user-diet-items
-POST   /api/user-diet-items
-DELETE /api/user-diet-items
-```
-
-### USDA
-
-```
-GET /api/usda
-```
-
----
+Open `http://localhost:3000`.
 
 ## 📸 Screenshots
 
-<table>
-<tr>
-<td align="center">
-<b>Home</b><br><br>
-<img src="./public/screenshots/home.png" width="260">
-</td>
+### Dashboard
 
-<td align="center">
-<b>History</b><br><br>
-<img src="./public/screenshots/history.png" width="260">
-</td>
+[SCREENSHOT]
 
-<td align="center">
-<b>Login</b><br><br>
-<img src="./public/screenshots/login.png" width="260">
-</td>
-</tr>
-</table>
+### History
 
----
+[SCREENSHOT]
 
-# 💡 Future Improvements
+### Login
 
-- Dashboard with nutrition statistics
-- Charts for weight progress
+[SCREENSHOT]
+
+## 💡 Future Improvements
+
+- Nutrition statistics and charts
+- Weight progress visualization
 - Weekly and monthly reports
-- Barcode scanner
 - Meal planning
 - Favorite products
-- Mobile-first UI improvements
+- Barcode scanning
 - Dark mode
 
----
+## 📄 License
 
-# 🎯 What I Practiced
-
-While building this project I practiced:
-
-- Full-stack application architecture
-- Authentication with Auth.js
-- PostgreSQL database design
-- Repository Pattern
-- Service Layer
-- API development with Route Handlers
-- CRUD operations
-- TypeScript
-- External API integration
-- Data validation
-- Clean project structure
-
----
-
-# 📄 License
-
-This project is available under the MIT License.
+MIT License
