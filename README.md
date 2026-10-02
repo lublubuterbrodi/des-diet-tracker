@@ -12,7 +12,7 @@ A full-stack nutrition tracking application built with **Next.js, TypeScript, Po
 
 Users can create a personalized daily diet, track food intake and body weight, search nutrition data through the USDA FoodData Central API, and manage their own products.
 
-🔗 **Live Demo:** [Open Diet Tracker](YOUR_LIVE_URL)
+🔗 **Live Demo:** [Open Diet Tracker](https://des-diet-tracker.vercel.app/)
 
 ### Demo Account
 
